@@ -32,17 +32,16 @@ export class Stack<T> extends Array<T> {
 interface Operator {
   name: string;
   precedence: number;
-  associativity?: "left" | "right";
   eval?: (a: number, b: number) => number;
 }
 type RPN = Array<number | Operator>;
 
 export const OPs: Array<Operator> = [
-  { name: "+", precedence: 2, associativity: "left", eval: (a, b) => a + b },
-  { name: "-", precedence: 2, associativity: "left", eval: (a, b) => a - b },
-  { name: "*", precedence: 3, associativity: "left", eval: (a, b) => a * b },
-  { name: "/", precedence: 3, associativity: "left", eval: (a, b) => a / b },
-  { name: "^", precedence: 4, associativity: "right", eval: (a, b) => a ** b },
+  { name: "+", precedence: 2, eval: (a, b) => a + b },
+  { name: "-", precedence: 2, eval: (a, b) => a - b },
+  { name: "*", precedence: 3, eval: (a, b) => a * b },
+  { name: "/", precedence: 3, eval: (a, b) => a / b },
+  { name: "^", precedence: 4, eval: (a, b) => a ** b },
 
   // special operators
   { name: "(", precedence: Infinity },
@@ -68,7 +67,7 @@ export const generateRPN = (tokens: string[]) => {
     } else if (token === "(") {
       operatorStack.push(OPMap["("]);
     } else if (token === ")") {
-      while (operatorStack.last && operatorStack.last.name !== "(") {
+      while (operatorStack.last?.name !== "(") {
         outputQueue.push(operatorStack.pop()!);
       }
 
@@ -79,12 +78,10 @@ export const generateRPN = (tokens: string[]) => {
       operatorStack.pop();
     } else if (token in OPMap) {
       const op = OPMap[token];
+
       while (
-        operatorStack.last &&
-        operatorStack.last.name !== "(" &&
-        (operatorStack.last.precedence > op.precedence ||
-          (operatorStack.last.precedence === op.precedence &&
-            operatorStack.last.associativity === "left"))
+        operatorStack.last?.name !== "(" &&
+        operatorStack.last?.precedence > op.precedence
       ) {
         outputQueue.push(operatorStack.pop()!);
       }
@@ -149,3 +146,6 @@ export const solve = (expr: string) => {
   const res = evalRPN(rpn);
   return res;
 };
+
+[3, 4, 2, "*", 1, 5, "-", 2, 3, "^", "^", "/", "+"];
+[3, 4, 2, "*", 1, 5, "-", 2, "^", 3, "^", "/", "+"];
